@@ -1,0 +1,700 @@
+#include <bits/stdc++.h>
+#include <SFML/Graphics.hpp>
+
+using namespace std;
+
+#define ll long long
+#define nmax 1007
+#define fr first
+#define sc second
+#define pii pair<int,int>
+
+/// CONSTANTS:
+const string dist="        ";
+const int chessSize=8;
+const int forbidReq=4;
+
+/// INITIALIZATION AND GUI VARIABLES:
+string dash="-";
+char chess[nmax][nmax];
+int chessPath[nmax][nmax], forbidNum, keysNum, chessPath2[nmax][nmax], countdownTime, genTime=1;
+pii dest, start, forbid[nmax], pnt, keys[nmax];
+string s[nmax];
+vector<pii> moves[nmax];
+pair< pii, pair<int, float> > playersRanking[10];
+bool fl=0;
+
+bool cmp(const pair< pii, pair<int, float> > &x, const pair< pii, pair<int, float> > &y) {
+    return x.fr.fr > y.fr.fr;
+}
+
+bool cmp1(const pair< pii, pair<int, float> > &x, const pair< pii, pair<int, float> > &y) {
+    return x.sc.fr < y.sc.fr;
+}
+
+bool cmp2(const pair< pii, pair<int, float> > &x, const pair< pii, pair<int, float> > &y) {
+    return x.sc.sc < y.sc.sc;
+}
+
+/// WASTING TIME TO ENSURE PERFECT RANDOMIZATION.
+void wasteTime(int why) {
+    int tmp=0;
+    for(int i=1; i<=why; ++i) {
+        for(int j=1; j<=why; ++j) {
+            ++tmp;
+        }
+    }
+}
+
+/// RANDOMIZER.
+void randomizer() {
+    srand(time(NULL));
+////  RANDOMIZER DESTINATION AND STARTING POINT
+//    dest.fr=rand()%(chessSize-1)+1;
+//    dest.sc=rand()%(chessSize-1)+1;
+//    start.fr=rand()%2+(chessSize)/2;
+//    start.sc=rand()%2+(chessSize)/2;
+//    if(dest.fr > dest.sc) dest.fr=min((rand()%2)*chessSize+1,chessSize);
+//    else dest.sc=min((rand()%2)*chessSize+1,chessSize);
+    dest.fr=chessSize; dest.sc=chessSize;
+    start.fr=1; start.sc=1;
+
+    // gen blacc hole
+    forbidNum=rand()%2+forbidReq;
+    for(int i=1; i<=forbidNum; ++i) {
+        wasteTime(rand()%10);
+        do {
+            forbid[i].fr=rand()%(chessSize)+1;
+            forbid[i].sc=rand()%(chessSize)+1;
+        }
+        while((forbid[i].fr == start.fr && forbid[i].sc == start.sc)
+            || (forbid[i].fr == dest.fr && forbid[i].sc == dest.sc)
+            || (forbid[i].fr == start.fr+2 && forbid[i].fr == start.sc+1)
+            || (forbid[i].fr == dest.fr-2 && forbid[i].sc == dest.sc-1));
+        //forbidding blacc hole to generate a unsolvable problem.
+    }
+
+    // gen keys
+    for(int i=1; i<=keysNum; ++i) {
+        wasteTime(rand()%10);
+        do {
+            keys[i].fr=rand()%(chessSize-2)+2;
+            keys[i].sc=rand()%(chessSize-2)+2;
+            //forbidding keys to be "too hard"
+        }
+        while((keys[i].fr == start.fr && keys[i].sc == start.sc) || (keys[i].fr == dest.fr && keys[i].sc == dest.sc));
+    }
+}
+
+/// INITIALIZATION.
+void init() {
+    for(int i=1; i<=chessSize; ++i)
+        for(int j=1; j<=chessSize; ++j) {
+            chess[i][j]=':';
+            chessPath[i][j]=0;
+        }
+    dash="-";
+    for(int i=1; i<=chessSize; ++i) dash+="--";
+
+    randomizer();
+
+    // Blacc hole assigner
+    for(int i=1; i<=forbidNum; ++i) {
+        chessPath[forbid[i].fr][forbid[i].sc]=-1;
+        chess[forbid[i].fr][forbid[i].sc]='X';
+    }
+
+    // Keys assigner
+    for(int i=1; i<=keysNum; ++i) {
+        chessPath[keys[i].fr][keys[i].sc]=-3;
+        chess[keys[i].fr][keys[i].sc]='+';
+    }
+
+    chess[dest.fr][dest.sc]='#';
+    chess[start.fr][start.sc]='O';
+    chessPath[dest.fr][dest.sc]=-2;
+    chessPath[start.fr][start.sc]=1;
+    for(int i=1; i<=chessSize; ++i)
+        for(int j=1; j<=chessSize; ++j)
+            chessPath2[i][j]=chessPath[i][j];
+}
+
+/// PRINT THE ASCII BOARD.
+void printASCII() {
+    cout << dist << "     ";
+    for(int i=0; i<chessSize; ++i) cout << char('A'+i) << ' ';
+    cout << '\n' << dist << "   +" << dash << "+" << '\n';
+    for(int i=1; i<=chessSize; ++i) {
+        cout << dist << setw(2) << i << " |";
+        for(int j=1; j<=chessSize; ++j) cout << ' ' << chess[i][j];
+        cout << " |\n";
+    }
+    cout << dist << "   +" << dash << "+" << '\n';
+//    fopen("output.out","w");
+//    for(int i=1; i<=chessSize; ++i) {
+//        for(int j=1; j<=chessSize; ++j) {
+//            cout << chessPath[i][j] << ' ';
+//        }
+//        cout << '\n';
+//    }
+//    fclose(stdout);
+}
+
+/// READ THE INPUT AFTER SHOWING THE BOARD.
+void readInput() {
+    freopen("input2.inp","r",stdin);
+    for(int i=0; i<=3; ++i) {
+        // read string
+        cin >> s[i];
+        //analyzer
+        // input type: e6c7d8. e6 means y=5 and x=6.
+        for(int j=0; j<s[i].size(); ++j) {
+            if(j%2==1 && s[i][j] >= '1' && s[i][j] <= '8') {
+                moves[i].push_back(make_pair(s[i][j]-'0',(int)s[i][j-1]-96));
+            }
+        }
+//        cout << s[i] << '\n';
+//        for(int j=0; j<moves[i].size(); ++j) cout << j+1 << ' ' << moves[i][j].fr << ' ' << moves[i][j].sc << '\n';
+    }
+    cout << "ĐÃ ĐỌC XONG INPUT.\n";
+}
+
+void initPrevent() {
+    init();
+    int keysCurrent=0;
+    int holeCurrent=0;
+    // preventing keys and blacc hole not be spawned correctly
+    for(int i=1; i<=chessSize; ++i)
+        for(int j=1; j<=chessSize; ++j) {
+            if(chessPath[i][j]==-3) ++keysCurrent;
+            if(chessPath[i][j]==-1) ++holeCurrent;
+        }
+    if(keysCurrent!=keysNum || holeCurrent!=forbidNum) {
+        wasteTime(100);
+        ++genTime;
+        initPrevent();
+
+    }
+}
+
+/// MAIN PROGRAM.
+int main() {
+    // Locale CMD to display Vietnamese properly in console.
+    system("chcp 65001>nul");
+
+    //pre-read the file
+    freopen("input.inp","r",stdin);
+    cin >> keysNum >> countdownTime;
+    //initialization
+    initPrevent();
+
+    //print stats
+    cout << "      Hố đen [X]: " << forbidNum << " hố\n";
+    cout << "Số chìa khóa [+]: " << keysNum << " chìa\n";
+    cout << "      Số lần gen: " << genTime << " lần\n";
+
+    //print the table in ASCII
+    printASCII();
+
+    // render window
+    int chessOffset=-30; //pixel border
+    sf::RenderWindow window(sf::VideoMode(804, 504), "Truy Tim Kho Bau - STEM 3T");
+
+    // TEXTURE
+    sf::Texture t[nmax];
+
+    // board
+    t[1].loadFromFile("images/board.png");
+    t[2].loadFromFile("images/board1.png");
+    t[3].loadFromFile("images/board2.png");
+
+    //figure
+    t[11].loadFromFile("images/figures.png");
+    t[12].loadFromFile("images/cross.png");
+    t[13].loadFromFile("images/door.png");
+    t[14].loadFromFile("images/keys.png");
+    t[15].loadFromFile("images/overlay.png");
+    sf::Sprite chessFigure[30];
+    for(int i=1; i<=5; ++i) chessFigure[i].setTexture(t[10+i]);
+
+    // player
+    t[30].loadFromFile("images/player1.png");
+    t[31].loadFromFile("images/player2.png");
+    t[32].loadFromFile("images/player3.png");
+    t[33].loadFromFile("images/player4.png");
+    sf::Sprite players[40];
+    for(int i=0; i<=3; ++i) players[i].setTexture(t[30+i]);
+
+    //fonts
+    sf::Sprite characters[60];
+    for(int i=46; i<=58; ++i) {
+        string tmp2="fonts/";
+        tmp2+=to_string(i);
+        tmp2+=".png";
+        t[i].loadFromFile(tmp2);
+        characters[i].setTexture(t[i]);
+    }
+
+    //fontsSmol
+    sf::Sprite charactersSmall[60];
+    for(int i=46; i<=58; ++i) {
+        string tmp2="fontsSmall/";
+        tmp2+=to_string(i);
+        tmp2+=".png";
+        t[40+i].loadFromFile(tmp2);
+        charactersSmall[i].setTexture(t[40+i]);
+    }
+    // errors
+    t[70].loadFromFile("images/error0.png");
+    t[71].loadFromFile("images/error1.png");
+    t[72].loadFromFile("images/error2.png");
+    t[73].loadFromFile("images/error3.png");
+    t[74].loadFromFile("images/error4.png");
+    t[75].loadFromFile("images/error5.png");
+    sf::Sprite errors[10];
+    for(int i=0; i<=5; ++i) errors[i].setTexture(t[70+i]);
+
+    // clock and time ranking
+    sf::Clock clockk;
+    bool freezeClock[nmax];
+    string clockCDString[nmax];
+    float timeTaken[nmax];
+    int rnk[nmax];
+    for(int i=0; i<=3; ++i) {
+        freezeClock[i]=0;
+        timeTaken[i]=0;
+        rnk[i]=0;
+    }
+    int rnkk=0;
+
+    //pre print the table in SFML
+    sf::Sprite sBoard(t[1]);
+    while (window.isOpen()) {
+        // clock
+        sf::Time clockCD=clockk.getElapsedTime();
+        float curTime=max((float)0,countdownTime-clockCD.asSeconds());
+        cout << "THỜI GIAN CÒN LẠI: " << fixed << setprecision(1) << curTime << '\r';
+
+        // event handler
+        sf::Event e;
+
+        // detect closing
+        while(window.pollEvent(e)) if (e.type==e.Closed) window.close();
+
+        // keyboard presses handler
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::R)) {
+            for(int i=0; i<=3; ++i) {
+                if(!freezeClock[i]) {
+                    timeTaken[i]=curTime;
+                    freezeClock[i]=1;
+                    rnk[i]=rnkk+1;
+                }
+            }
+            window.close();
+            break;
+        }
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::U)) {
+            timeTaken[0]=curTime;
+            if(!freezeClock) rnk[0]=++rnkk;
+            freezeClock[0]=1;
+        }
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::I)) {
+            timeTaken[1]=curTime;
+            if(!freezeClock) rnk[1]=++rnkk;
+            freezeClock[1]=1;
+        }
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::O)) {
+            timeTaken[2]=curTime;
+            if(!freezeClock) rnk[2]=++rnkk;
+            freezeClock[2]=1;
+        }
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::P)) {
+            timeTaken[3]=curTime;
+            if(!freezeClock) rnk[3]=++rnkk;
+            freezeClock[3]=1;
+        }
+
+        // draw
+        window.clear();
+        window.draw(sBoard);
+
+        //print timer
+        if (curTime==(float)0) {
+            for(int i=0; i<=3; ++i) freezeClock[i]=1;
+        }
+        for(int j=0; j<=3; ++j) {
+            if(!freezeClock[j]) {
+                clockCDString[j]="";
+                clockCDString[j]+=to_string((int)trunc(curTime)/60); // minute
+                clockCDString[j]+=":";
+                if ((int)trunc(curTime)%60 <=9)
+                    clockCDString[j]+="0";
+                clockCDString[j]+=to_string((int)trunc(curTime)%60); //second
+                clockCDString[j]+=".";
+                clockCDString[j]+=to_string(((int)trunc(curTime*10)%600)%10); //0.1second
+            }
+
+            // print timer
+            for(int i=0; i<clockCDString[j].size(); ++i) {
+                int tmpp=(int)clockCDString[j][i];
+                characters[tmpp].setPosition(640+i*20,170+j*80);
+                window.draw(characters[tmpp]);
+            }
+        }
+
+        // print board
+        for(int i=1; i<=8; ++i) {
+            for (int j=1; j<=8; ++j) {
+                if(chessPath[i][j]==1) {
+                    chessFigure[1].setPosition(chessOffset+j*56,chessOffset+i*56);
+                    window.draw(chessFigure[1]);
+                }
+                else if(chessPath[i][j]==-2) {
+                    chessFigure[3].setPosition(chessOffset+j*56,chessOffset+i*56);
+                    window.draw(chessFigure[3]);
+                }
+                else if(chessPath[i][j]==-1) {
+                    chessFigure[2].setPosition(chessOffset+j*56,chessOffset+i*56);
+                    window.draw(chessFigure[2]);
+                }
+                else if(chessPath[i][j]==-3) {
+                    chessFigure[4].setPosition(chessOffset+j*56,chessOffset+i*56);
+                    window.draw(chessFigure[4]);
+                }
+            }
+        }
+
+        // display
+        window.display();
+    }
+
+    // read the input for solution
+    readInput();
+
+    // showcase the solution.
+
+    sf::Sprite sBoard2(t[2]);
+    for(int why=0; why<=0; ++why) {
+        //render window
+        sf::RenderWindow window(sf::VideoMode(804, 504), "Truy Tim Kho Bau - STEM 3T");
+        while(!window.isOpen()) sf::sleep(sf::milliseconds(50));
+        for(int o=0; o<=3; ++o) {
+            // console debugger
+            int keysCounter=0;
+            int errorLevel=0;
+            int prePosX=1, prePosY=1, prePosState=0;
+            int preChessPath=0;
+            cout << "LỜI GIẢI THỨ " << o+1 << "[" << moves[o].size() << "]:\n";
+            cout << dist << "Nước đi cụ thể: ";
+
+            while (window.isOpen()) {
+                // event handler
+                sf::Event e;
+                while(window.pollEvent(e)) if (e.type==e.Closed) window.close();
+
+                // print board
+                for(int k=0; k<moves[o].size(); ++k) {
+                    // reseting the board
+                    window.clear();
+                    window.draw(sBoard2);
+                    cout << (char)(moves[o][k].sc+64) << moves[o][k].fr << ' ';
+
+                    // set the moves
+                    preChessPath=chessPath[moves[o][k].fr][moves[o][k].sc];
+                    prePosX=moves[o][k].fr;
+                    prePosY=moves[o][k].sc;
+                    prePosState=k;
+                    chessPath[moves[o][k].fr][moves[o][k].sc]=k+2;
+
+                    // wait between moves
+                    sf::sleep(sf::milliseconds(750));
+
+                    // printing the board
+                    for(int i=1; i<=8; ++i) {
+                        for (int j=1; j<=8; ++j) {
+                            if(chessPath[i][j]>=1 && chessPath[i][j]!=k+2) {
+                                chessFigure[5].setPosition(chessOffset+j*56,chessOffset+i*56);
+                                window.draw(chessFigure[5]);
+                            }
+                            else if(chessPath[i][j]==k+2) {
+                                chessFigure[1].setPosition(chessOffset+j*56,chessOffset+i*56);
+                                window.draw(chessFigure[1]);
+                            }
+                            else if(chessPath[i][j]==-2) {
+                                chessFigure[3].setPosition(chessOffset+j*56,chessOffset+i*56);
+                                window.draw(chessFigure[3]);
+                            }
+                            else if(chessPath[i][j]==-1) {
+                                chessFigure[2].setPosition(chessOffset+j*56,chessOffset+i*56);
+                                window.draw(chessFigure[2]);
+                            }
+                            else if(chessPath[i][j]==-3) {
+                                chessFigure[4].setPosition(chessOffset+j*56,chessOffset+i*56);
+                                window.draw(chessFigure[4]);
+                            }
+                        }
+                    }
+
+                    //printing the stats
+                    players[o].setPosition(550,180);
+                    window.draw(players[o]);
+
+                    // analyze time taken
+                    float curTime=max((float)0,countdownTime-timeTaken[o]);
+                    string clockString="";
+                    clockString+=to_string((int)trunc(curTime)/60); // minute
+                    clockString+=":";
+                    if ((int)trunc(curTime)%60 <=9)
+                        clockString+="0";
+                    clockString+=to_string((int)trunc(curTime)%60); //second
+                    clockString+=".";
+                    clockString+=to_string(((int)trunc(curTime*10)%600)%10); //0.1second
+
+                    for(int i=0; i<clockString.size(); ++i) {
+                        int tmpp=(int)clockString[i];
+                        characters[tmpp].setPosition(640+i*20,170);
+                        window.draw(characters[tmpp]);
+                    }
+
+                    string tmppp=to_string(k+1);
+                    for(int i=0; i<tmppp.size(); ++i) {
+                        int tmpp=(int)tmppp[i];
+                        characters[tmpp].setPosition(550+i*20,250);
+                        window.draw(characters[tmpp]);
+                    }
+
+                    // keys counter
+                    if(preChessPath==-3) ++keysCounter;
+                    string tmpp="";
+                    tmpp+=to_string(keysCounter);
+                    tmpp+="/";
+                    tmpp+=to_string(keysNum);
+
+                    chessFigure[4].setPosition(640,240);
+                    window.draw(chessFigure[4]);
+
+                    for(int i=0; i<tmpp.size(); ++i) {
+                        characters[tmpp[i]].setPosition(700+i*20,250);
+                        window.draw(characters[tmpp[i]]);
+                    }
+
+                    // checks for goto the black hole
+                    if(preChessPath==-1) {
+                        cout << "LỖI: ĐI VÀO ĐIỂM CẤM.\n";
+                        errorLevel=1;
+                    }
+
+                    // checks for repeating
+                    if(preChessPath>=1) {
+                        cout << "LỖI: ĐI TRÙNG VÀO ĐIỂM TRƯỚC ĐÓ.\n";
+                        errorLevel=2;
+                    }
+
+                    // check if the last move is the finish
+                    if(k==moves[o].size()-1) {
+                        if(preChessPath!=-2) {
+                            cout << "LỖI: LỜI GIẢI CHƯA ĐI ĐẾN ĐÍCH.\n";
+                            errorLevel=3;
+                        }
+                        else {
+                            if(keysCounter<keysNum) {
+                                cout << "LỖI: CHƯA THU THẬP ĐỦ CHÌA KHÓA.\n";
+                                errorLevel=4;
+                            }
+                        }
+                    }
+
+                    // check invalid horse move
+                    if(k==0) {
+                        if((abs(moves[o][k].fr-1)==2 && abs(moves[o][k].sc-1)==1) || (abs(moves[o][k].fr-1)==1 && abs(moves[o][k].sc-1)==2)) {
+                            int dum=0;
+                        }
+                        else {
+                            cout << "LỖI: NƯỚC ĐI MÃ KHÔNG HỢP LỆ.\n";
+                            errorLevel=5;
+                        }
+                    }
+                    else {
+                        if((abs(moves[o][k].fr-moves[o][k-1].fr)==2 && abs(moves[o][k].sc-moves[o][k-1].sc)==1) || (abs(moves[o][k].fr-moves[o][k-1].fr)==1 && abs(moves[o][k].sc-moves[o][k-1].sc)==2)) {
+                            int dum=0;
+                        }
+                        else {
+                            cout << "LỖI: NƯỚC ĐI MÃ KHÔNG HỢP LỆ.\n";
+                            errorLevel=5;
+                        }
+                    }
+
+                    // Print the mistake
+                    if(errorLevel>0) {
+                        errors[errorLevel].setPosition(533,320);
+                        window.draw(errors[errorLevel]);
+                    }
+                    window.display();
+                    if(errorLevel>0) break;
+                }
+
+                // TODO: Having a result screen.
+
+                // notify in the console
+                cout << "\nIN LỜI GIẢI " << o+1 << " THÀNH CÔNG, hệ thống đang chờ 13*0.75s.\n";
+                // printing the board
+                for(int tm=0; tm<13; ++tm) {
+                    window.clear();
+                    window.draw(sBoard2);
+                    if(tm%2) chessPath[prePosX][prePosY]=-10;
+                    else chessPath[prePosX][prePosY]=preChessPath;
+                    for(int i=1; i<=8; ++i) {
+                        for (int j=1; j<=8; ++j) {
+                            if(chessPath[i][j]>=1) {
+                                chessFigure[5].setPosition(chessOffset+j*56,chessOffset+i*56);
+                                window.draw(chessFigure[5]);
+                            }
+                            else if(chessPath[i][j]==-10) {
+                                chessFigure[1].setPosition(chessOffset+j*56,chessOffset+i*56);
+                                window.draw(chessFigure[1]);
+                            }
+                            else if(chessPath[i][j]==-2) {
+                                chessFigure[3].setPosition(chessOffset+j*56,chessOffset+i*56);
+                                window.draw(chessFigure[3]);
+                            }
+                            else if(chessPath[i][j]==-1) {
+                                chessFigure[2].setPosition(chessOffset+j*56,chessOffset+i*56);
+                                window.draw(chessFigure[2]);
+                            }
+                            else if(chessPath[i][j]==-3) {
+                                chessFigure[4].setPosition(chessOffset+j*56,chessOffset+i*56);
+                                window.draw(chessFigure[4]);
+                            }
+                        }
+                    }
+                    //printing the stats
+                    players[o].setPosition(550,180);
+                    window.draw(players[o]);
+
+                    // analyze time taken
+                    float curTime=max((float)0,countdownTime-timeTaken[o]);
+                    string clockString="";
+                    clockString+=to_string((int)trunc(curTime)/60); // minute
+                    clockString+=":";
+                    if ((int)trunc(curTime)%60 <=9)
+                        clockString+="0";
+                    clockString+=to_string((int)trunc(curTime)%60); //second
+                    clockString+=".";
+                    clockString+=to_string(((int)trunc(curTime*10)%600)%10); //0.1second
+
+                    for(int i=0; i<clockString.size(); ++i) {
+                        int tmpp=(int)clockString[i];
+                        characters[tmpp].setPosition(640+i*20,170);
+                        window.draw(characters[tmpp]);
+                    }
+
+                    string tmppp=to_string(prePosState+1);
+                    for(int i=0; i<tmppp.size(); ++i) {
+                        int tmpp=(int)tmppp[i];
+                        characters[tmpp].setPosition(550+i*20,250);
+                        window.draw(characters[tmpp]);
+                    }
+                    // keys counter
+                    string tmpp="";
+                    tmpp+=to_string(keysCounter);
+                    tmpp+="/";
+                    tmpp+=to_string(keysNum);
+                    chessFigure[4].setPosition(640,240);
+                    window.draw(chessFigure[4]);
+                    for(int i=0; i<tmpp.size(); ++i) {
+                        characters[tmpp[i]].setPosition(700+i*20,250);
+                        window.draw(characters[tmpp[i]]);
+                    }
+
+                    //errors
+                    errors[errorLevel].setPosition(533,320);
+                    window.draw(errors[errorLevel]);
+                    window.display();
+                    sf::sleep(sf::milliseconds(750));
+                }
+
+                // update for the ranking
+                if(errorLevel==0) ++keysCounter;
+                playersRanking[o].fr.sc=o; // players' id
+                playersRanking[o].fr.fr=keysCounter; //keys and completion counter
+                playersRanking[o].sc.fr=moves[o].size(); //moves
+                playersRanking[o].sc.sc=countdownTime-timeTaken[o]; //time taken
+
+                // reset the board
+                for(int i=1; i<=8; ++i)
+                    for (int j=1; j<=8; ++j)
+                        chessPath[i][j]=chessPath2[i][j];
+                sf::sleep(sf::milliseconds(50));
+                break;
+            }
+        }
+        /// printing final ranking
+        // todo: printing the stats to that screen.
+        sf::Sprite sBoard3(t[3]);
+        sort(playersRanking,playersRanking+4,cmp2);
+        sort(playersRanking,playersRanking+4,cmp1);
+        sort(playersRanking,playersRanking+4,cmp);
+        cout << "ID -- CHÌA KHÓA -- LƯỢT ĐI -- THỜI GIAN\n";
+        for(int i=0; i<=3; ++i)
+            cout << playersRanking[i].fr.sc << ' ' << playersRanking[i].fr.fr << ' ' << playersRanking[i].sc.fr << ' ' << playersRanking[i].sc.sc << '\n';
+        while(window.isOpen()) {
+            window.clear();
+            window.draw(sBoard3);
+            for(int i=0; i<=3; ++i) {
+                //players
+                players[playersRanking[i].fr.sc].setPosition(160,120+i*60);
+                window.draw(players[playersRanking[i].fr.sc]);
+
+                // keys counter
+                string tmpppp="";
+                tmpppp+=to_string(min(playersRanking[i].fr.fr,keysNum));
+                tmpppp+="/";
+                tmpppp+=to_string(keysNum);
+                chessFigure[4].setPosition(640,240);
+                window.draw(chessFigure[4]);
+                for(int j=0; j<tmpppp.size(); ++j) {
+                    characters[tmpppp[j]].setPosition(700+j*20,250);
+                    window.draw(characters[tmpppp[j]]);
+                }
+
+                // moves
+                string tmppp=to_string(playersRanking[i].sc.fr);
+                for(int j=0; j<tmppp.size(); ++j) {
+                    int tmpp=(int)tmppp[j];
+                    characters[tmpp].setPosition(550+j*20,250);
+                    window.draw(characters[tmpp]);
+                }
+
+                // time taken
+                float curTime=playersRanking[i].sc.sc;
+                string clockString="";
+                clockString+=to_string((int)trunc(curTime)/60); // minute
+                clockString+=":";
+                if ((int)trunc(curTime)%60 <=9)
+                    clockString+="0";
+                clockString+=to_string((int)trunc(curTime)%60); //second
+                clockString+=".";
+                clockString+=to_string(((int)trunc(curTime*10)%600)%10); //0.1second
+                for(int j=0; j<clockString.size(); ++j) {
+                    int tmpp=(int)clockString[j];
+                    characters[tmpp].setPosition(640+j*20,170);
+                    window.draw(characters[tmpp]);
+                }
+            }
+            window.display();
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::R)) {
+            for(int i=0; i<=3; ++i) {
+                if(!freezeClock[i]) {
+                    timeTaken[i]=curTime;
+                    freezeClock[i]=1;
+                    rnk[i]=rnkk+1;
+                }
+            }
+            window.close();
+            break;
+        }
+        }
+    }
+
+    return 0;
+}
