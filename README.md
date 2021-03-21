@@ -1,5 +1,7 @@
 # TruyTimKhoBauSTEM
-Truy Tìm Kho Báu - STEM Trại Toán-Tin. 26/03/2021
+* Truy Tìm Kho Báu - STEM Trại Toán-Tin. 26/03/2021.
+* Ngôn ngữ: C++, SFML.
+* Tác giả: Phạm Nhật Quang.
 
 # Ghi chú
 * Code chưa được hoàn thiện, cực rối rắm và dài dòng.
@@ -23,14 +25,14 @@ Truy Tìm Kho Báu - STEM Trại Toán-Tin. 26/03/2021
 - Sau khi biểu thị xong, chương trình sẽ chờ 10 giây trước khi chuyển sang người tiếp theo.
 - Sau khi biểu thị tất cả người chơi, hệ thống chuyển sang giai đoạn 3.
 
-### Giai đoạn 3 [Chưa hoàn thiện]
+### Giai đoạn 3 (Chưa hoàn thiện)
 - Màn hình này sẽ hiện ra kết quả tổng của người chơi dựa trên tiêu chí sắp xếp: _Số chìa khóa > Số nước đi > Thời gian_.
 - Nhấn "R" hoặc đóng cửa sổ để kết thúc trò chơi.
 
 # Cách cài đặt
 ## Cài và link đúng MingW-w64 (bản x86_64, posix-seh, 8.1.0).
 ## Để compile bằng Code::Blocks:
-- Tải SFML [bản SEH]: https://www.sfml-dev.org/download/sfml/2.5.1/
+- Tải SFML (bản SEH): https://www.sfml-dev.org/download/sfml/2.5.1/
 - Cài SFML vào Code::Blocks: https://www.youtube.com/watch?v=fcZFaiGFIMA/
 - Mở file project "lmao2.cbp".
 ## Để chạy thẳng:
