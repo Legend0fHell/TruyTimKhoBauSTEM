@@ -12,11 +12,11 @@ using namespace std;
 /// CONSTANTS:
 const string dist="        ";
 const int chessSize=8;
-const int forbidReq=4;
 
 /// INITIALIZATION AND GUI VARIABLES:
 string dash="-";
 char chess[nmax][nmax];
+int forbidReq;
 int chessPath[nmax][nmax], forbidNum, keysNum, chessPath2[nmax][nmax], countdownTime, genTime=1;
 pii dest, start, forbid[nmax], pnt, keys[nmax];
 string s[nmax];
@@ -184,13 +184,14 @@ int main() {
 
     //pre-read the file
     freopen("input.inp","r",stdin);
-    cin >> keysNum >> countdownTime;
+    cin >> keysNum >> forbidReq >> countdownTime;
     //initialization
     initPrevent();
 
     //print stats
     cout << "      Hố đen [X]: " << forbidNum << " hố\n";
     cout << "Số chìa khóa [+]: " << keysNum << " chìa\n";
+    cout << "       Thời gian: " << countdownTime << "s\n";
     cout << "      Số lần gen: " << genTime << " lần\n";
 
     //print the table in ASCII
@@ -237,6 +238,10 @@ int main() {
 
     //fontsSmol
     sf::Sprite charactersSmall[60];
+    t[16].loadFromFile("images/keysSmall.png");
+    t[17].loadFromFile("images/crownSmall.png");
+    charactersSmall[1].setTexture(t[16]);
+    charactersSmall[2].setTexture(t[17]);
     for(int i=46; i<=58; ++i) {
         string tmp2="fontsSmall/";
         tmp2+=to_string(i);
@@ -640,9 +645,12 @@ int main() {
         while(window.isOpen()) {
             window.clear();
             window.draw(sBoard3);
-            for(int i=0; i<=3; ++i) {
+            // just for the first ranked
+            // player
+            for(int i=0; i<=0; ++i) {
+                int offbetween=63;
                 //players
-                players[playersRanking[i].fr.sc].setPosition(170,120+i*70);
+                players[playersRanking[i].fr.sc].setPosition(170,123+i*offbetween);
                 window.draw(players[playersRanking[i].fr.sc]);
 
                 // keys counter
@@ -650,19 +658,28 @@ int main() {
                 tmpppp+=to_string(min(playersRanking[i].fr.fr,keysNum));
                 tmpppp+="/";
                 tmpppp+=to_string(keysNum);
-                chessFigure[4].setPosition(640,240);
-                window.draw(chessFigure[4]);
+
+                // cute little indicator
+                if(playersRanking[i].fr.fr<=keysNum) {
+                    charactersSmall[1].setPosition(170,158+i*offbetween);
+                    window.draw(charactersSmall[1]);
+                }
+                else {
+                    charactersSmall[2].setPosition(170,133+i*offbetween);
+                    window.draw(charactersSmall[2]);
+                }
+
                 for(int j=0; j<tmpppp.size(); ++j) {
-                    characters[tmpppp[j]].setPosition(700+j*20,250);
-                    window.draw(characters[tmpppp[j]]);
+                    charactersSmall[tmpppp[j]].setPosition(195+j*10,133+i*offbetween);
+                    window.draw(charactersSmall[tmpppp[j]]);
                 }
 
                 // moves
                 string tmppp=to_string(playersRanking[i].sc.fr);
                 for(int j=0; j<tmppp.size(); ++j) {
                     int tmpp=(int)tmppp[j];
-                    characters[tmpp].setPosition(550+j*20,250);
-                    window.draw(characters[tmpp]);
+                    charactersSmall[tmpp].setPosition(237+j*10,133+i*offbetween);
+                    window.draw(charactersSmall[tmpp]);
                 }
 
                 // time taken
@@ -677,7 +694,58 @@ int main() {
                 clockString+=to_string(((int)trunc(curTime*10)%600)%10); //0.1second
                 for(int j=0; j<clockString.size(); ++j) {
                     int tmpp=(int)clockString[j];
-                    characters[tmpp].setPosition(640+j*20,170);
+                    characters[tmpp].setPosition(305+j*20,130+i*offbetween);
+                    window.draw(characters[tmpp]);
+                }
+            }
+            for(int i=1; i<=3; ++i) {
+                int offbetween=63;
+                //players
+                players[playersRanking[i].fr.sc].setPosition(170,135+i*offbetween);
+                window.draw(players[playersRanking[i].fr.sc]);
+
+                // keys counter
+                string tmpppp="";
+                tmpppp+=to_string(min(playersRanking[i].fr.fr,keysNum));
+                tmpppp+="/";
+                tmpppp+=to_string(keysNum);
+
+                // cute little indicator
+                if(playersRanking[i].fr.fr<=keysNum) {
+                    charactersSmall[1].setPosition(170,165+i*offbetween);
+                    window.draw(charactersSmall[1]);
+                }
+                else {
+                    charactersSmall[2].setPosition(170,140+i*offbetween);
+                    window.draw(charactersSmall[2]);
+                }
+
+                for(int j=0; j<tmpppp.size(); ++j) {
+                    charactersSmall[tmpppp[j]].setPosition(195+j*10,140+i*offbetween);
+                    window.draw(charactersSmall[tmpppp[j]]);
+                }
+
+                // moves
+                string tmppp=to_string(playersRanking[i].sc.fr);
+                for(int j=0; j<tmppp.size(); ++j) {
+                    int tmpp=(int)tmppp[j];
+                    charactersSmall[tmpp].setPosition(237+j*10,140+i*offbetween);
+                    window.draw(charactersSmall[tmpp]);
+                }
+
+                // time taken
+                float curTime=playersRanking[i].sc.sc;
+                string clockString="";
+                clockString+=to_string((int)trunc(curTime)/60); // minute
+                clockString+=":";
+                if ((int)trunc(curTime)%60 <=9)
+                    clockString+="0";
+                clockString+=to_string((int)trunc(curTime)%60); //second
+                clockString+=".";
+                clockString+=to_string(((int)trunc(curTime*10)%600)%10); //0.1second
+                for(int j=0; j<clockString.size(); ++j) {
+                    int tmpp=(int)clockString[j];
+                    characters[tmpp].setPosition(275+j*20,140+i*offbetween);
                     window.draw(characters[tmpp]);
                 }
             }
