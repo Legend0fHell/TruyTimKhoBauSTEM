@@ -4,12 +4,12 @@
 * Tác giả: Phạm Nhật Quang.
 
 # Ghi chú
-* Code chưa được hoàn thiện, cực rối rắm và dài dòng.
-* Hiện tại đang được hoàn thiện tới giai đoạn cuối cùng.
+* Code chưa được hoàn thiện và tinh chỉnh.
+* Hiện tại code đã hoàn thiện 99%.
 
 # Cách sử dụng
 ## File nhập
-- File "input.inp" được dùng để nhập 2 giá trị, lần lượt là số chìa khóa và thời gian (giây).
+- File "input.inp" được dùng để nhập 3 giá trị, lần lượt là số chìa khóa, số hố và thời gian (giây).
 - File "input2.inp" được dùng để nhập 4 xâu giá trị, là cách đi của 4 người chơi tương ứng.
 
 ## Cách điều hành
@@ -25,7 +25,7 @@
 - Sau khi biểu thị xong, chương trình sẽ chờ 10 giây trước khi chuyển sang người tiếp theo.
 - Sau khi biểu thị tất cả người chơi, hệ thống chuyển sang giai đoạn 3.
 
-### Giai đoạn 3 (Chưa hoàn thiện)
+### Giai đoạn 3
 - Màn hình này sẽ hiện ra kết quả tổng của người chơi dựa trên tiêu chí sắp xếp: _Số chìa khóa > Số nước đi > Thời gian_.
 - Nhấn "R" hoặc đóng cửa sổ để kết thúc trò chơi.
 
