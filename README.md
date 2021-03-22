@@ -6,9 +6,11 @@
 * Mặc dù chương trình đã xong, tuy nhiên code chưa được hoàn thiện và tinh chỉnh.
 
 # Cách sử dụng
-## File nhập
+## File
 - File "input.inp" được dùng để nhập 3 giá trị, lần lượt là số chìa khóa, số hố và thời gian (giây).
 - File "input2.inp" được dùng để nhập 4 xâu giá trị, là cách đi của 4 người chơi tương ứng.
+- File "lmao2.exe" là chương trình đã biên dịch, "main.cpp" là mã nguồn của chương trình.
+- Các thư mục còn lại là những thư mục tài nguyên, chứa hình ảnh sử dụng trong chương trình.
 
 ## Cách điều hành
 ### Giai đoạn 1
@@ -29,8 +31,10 @@
 
 # Cách cài đặt (Phức tạp)
 ## Bắt buộc
+* Ở trang GitHub này, nhấn vào nút "Code" -> Chọn "Download ZIP".
 * Cài [MingW-w64](https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/installer/mingw-w64-install.exe/download) (GNU G++, bản x86_64, posix-seh, 8.1.0).
 * Thực hiện chạy file "mingw-w64.bat" ở thư mục cài đặt (ví dụ: C:\Program Files\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0).
+* Thực hiện một trong hai cách sau:
 
 ## Để compile bằng Code::Blocks:
 - Mở file project "lmao2.cbp".
