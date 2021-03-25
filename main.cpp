@@ -16,7 +16,7 @@ const int chessSize=8;
 /// INITIALIZATION AND GUI VARIABLES:
 string dash="-";
 char chess[nmax][nmax];
-int forbidReq;
+int forbidReq, spaceReq;
 int chessPath[nmax][nmax], forbidNum, keysNum, chessPath2[nmax][nmax], countdownTime, genTime=1;
 pii dest, start, forbid[nmax], pnt, keys[nmax];
 string s[nmax];
@@ -60,7 +60,7 @@ void randomizer() {
     start.fr=1; start.sc=1;
 
     // gen blacc hole
-    forbidNum=rand()%2+forbidReq;
+    forbidNum=forbidReq;
     for(int i=1; i<=forbidNum; ++i) {
         wasteTime(rand()%10);
         do {
@@ -163,17 +163,19 @@ void initPrevent() {
     init();
     int keysCurrent=0;
     int holeCurrent=0;
+    bool fltmp=0;
     // preventing keys and blacc hole not be spawned correctly
     for(int i=1; i<=chessSize; ++i)
         for(int j=1; j<=chessSize; ++j) {
             if(chessPath[i][j]==-3) ++keysCurrent;
             if(chessPath[i][j]==-1) ++holeCurrent;
         }
-    if(keysCurrent!=keysNum || holeCurrent!=forbidNum) {
+    for(int i=1; i<keysNum; ++i) {
+        if(abs(keys[i].fr-keys[i+1].fr) + abs(keys[i].sc-keys[i+1].sc) < spaceReq) fltmp=1;
+    }
+    if(keysCurrent!=keysNum || holeCurrent!=forbidNum || fltmp==1) {
         wasteTime(100);
-        ++genTime;
         initPrevent();
-
     }
 }
 
@@ -182,17 +184,23 @@ int main() {
     // Locale CMD to display Vietnamese properly in console.
     system("chcp 65001>nul");
 
-    //pre-read the file
+    //pre-read the file, keysNum/ forbidden tiles/ space required and time countdown.
     freopen("input.inp","r",stdin);
-    cin >> keysNum >> forbidReq >> countdownTime;
-    //initialization
+    cin >> keysNum >> forbidReq >> spaceReq >> countdownTime;
+
+    //initialization and measuring time
+    auto start2 = chrono::high_resolution_clock::now();
     initPrevent();
+    auto end2 = chrono::high_resolution_clock::now();
+    double time_taken = chrono::duration_cast<chrono::nanoseconds>(end2 - start2).count();
+    time_taken *= 1e-9;
 
     //print stats
-    cout << "      Hố đen [X]: " << forbidNum << " hố\n";
-    cout << "Số chìa khóa [+]: " << keysNum << " chìa\n";
-    cout << "       Thời gian: " << countdownTime << "s\n";
-    cout << "      Số lần gen: " << genTime << " lần\n";
+    cout << "       Hố đen [X]: " << forbidNum << " hố\n";
+    cout << " Số chìa khóa [+]: " << keysNum << " chìa\n";
+    cout << " Tổng Khoảng cách: " << spaceReq << " ô\n";
+    cout << "       Thời lượng: " << countdownTime << "s\n";
+    cout << "   Thời gian sinh: " << time_taken << "s\n";
 
     //print the table in ASCII
     printASCII();
