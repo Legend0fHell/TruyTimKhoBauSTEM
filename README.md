@@ -33,15 +33,4 @@
 ## Bắt buộc
 * Ở trang GitHub này, nhấn vào nút "Code" -> Chọn "Download ZIP".
 * Giải nén file vừa tải. Chương trình nằm trong thư mục vừa giải nén.
-* Cài [MingW-w64](https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/installer/mingw-w64-install.exe/download) (GNU G++, bản x86_64, posix-seh, 8.1.0).
-* Thực hiện chạy file "mingw-w64.bat" ở thư mục cài đặt (ví dụ: C:\Program Files\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0).
-* Thực hiện một trong hai cách sau:
-
-## Để compile bằng Code::Blocks:
-- Mở file project "lmao2.cbp".
-- Tải SFML (bản SEH): [Link tải SFML](https://www.sfml-dev.org/files/SFML-2.5.1-windows-gcc-7.3.0-mingw-64-bit.zip)
-- Cài SFML vào Code::Blocks: [Video hướng dẫn](https://www.youtube.com/watch?v=fcZFaiGFIMA/)
-- *Lưu ý*: Chỉnh sửa đường dẫn Compiler, Linker lại cho đúng với máy.
-
-## Để chạy thẳng (Chưa thử):
 - Chạy file "lmao2.exe".
